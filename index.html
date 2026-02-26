@@ -767,12 +767,43 @@
       showMsg("Quality set", 650);
     });
 
-    restartBtn.addEventListener("click", () => {
-      resetGame();
-      menu.style.display = "grid";
-      if (controls.isLocked) controls.unlock();
-      showMsg("Restarted", 650);
-    });
+    let pendingStart = false;
+
+function beginRun() {
+  if (!running) {
+    running = true;
+    showMsg("Go", 650);
+  }
+}
+
+startBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  pendingStart = true;
+  showMsg("Click anywhere to begin", 900);
+});
+
+// Click canvas to lock and start
+renderer.domElement.addEventListener("click", () => {
+  if (menu.style.display !== "none") return;
+
+  if (!controls.isLocked) {
+    controls.lock();
+    return;
+  }
+
+  if (pendingStart) {
+    pendingStart = false;
+    beginRun();
+  }
+});
+
+// Start as soon as pointer lock succeeds
+controls.addEventListener("lock", () => {
+  if (pendingStart) {
+    pendingStart = false;
+    beginRun();
+  }
+});
 
     startBtn.addEventListener("click", () => {
       menu.style.display = "none";
