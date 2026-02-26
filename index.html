@@ -13,6 +13,7 @@
       height: 100%;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
       color: #e8f0ff;
+      user-select: none;
     }
     #wrap { position: fixed; inset: 0; }
     canvas {
@@ -21,6 +22,7 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
       display: block;
+      outline: none;
     }
 
     /* HUD */
@@ -41,6 +43,7 @@
       font-size: 14px;
       line-height: 1.35;
       backdrop-filter: blur(4px);
+      min-width: 220px;
     }
     #topLeft .muted { opacity: 0.75; font-weight: 500; }
     #topLeft .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -66,14 +69,15 @@
       width: 14px;
       height: 14px;
       transform: translate(-50%, -50%);
-      opacity: 0.9;
+      opacity: 0.92;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.45));
     }
     #crosshair::before, #crosshair::after {
       content: "";
       position: absolute;
       left: 50%;
       top: 50%;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.92);
       transform: translate(-50%, -50%);
       border-radius: 2px;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
@@ -91,11 +95,13 @@
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 14px;
       padding: 10px 14px;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.2px;
       opacity: 0;
       transition: opacity 120ms linear;
       backdrop-filter: blur(4px);
+      text-align: center;
+      max-width: min(80vw, 520px);
     }
     #msg.show { opacity: 1; }
 
@@ -111,7 +117,7 @@
       z-index: 10;
     }
     #card {
-      width: min(700px, calc(100vw - 28px));
+      width: min(760px, calc(100vw - 28px));
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.10);
       background: rgba(0,0,0,0.42);
@@ -128,12 +134,12 @@
     #subtitle {
       margin: 0 0 14px;
       opacity: 0.82;
-      font-weight: 600;
+      font-weight: 650;
       line-height: 1.4;
     }
     .grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 14px;
     }
     @media (max-width: 720px) {
@@ -157,7 +163,7 @@
       padding-left: 18px;
       opacity: 0.9;
       line-height: 1.5;
-      font-weight: 600;
+      font-weight: 650;
       font-size: 14px;
     }
     .btnRow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
@@ -168,7 +174,7 @@
       color: #e8f0ff;
       padding: 10px 14px;
       border-radius: 12px;
-      font-weight: 800;
+      font-weight: 850;
       cursor: pointer;
       letter-spacing: 0.2px;
     }
@@ -178,6 +184,7 @@
       border-color: rgba(120,210,160,0.45);
     }
     button.primary:hover { background: rgba(120,210,160,0.30); }
+
     .small {
       opacity: 0.85;
       font-weight: 650;
@@ -193,6 +200,34 @@
       background: rgba(0,0,0,0.25);
       font-weight: 900;
       letter-spacing: 0.2px;
+    }
+
+    /* Settings rows */
+    .settingRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .settingRow label {
+      font-weight: 800;
+      opacity: 0.9;
+      font-size: 13px;
+    }
+    input[type="range"] {
+      width: 220px;
+      accent-color: rgba(120,210,160,1);
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      font-weight: 900;
+      font-size: 12px;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -210,7 +245,10 @@
         <div id="bar"><div id="barFill"></div></div>
       </div>
       <div class="muted" style="margin-top:6px;">
-        Click to shoot • R reload • WASD move • Shift sprint
+        Click shoot • R reload • WASD move • Shift sprint • Esc pause
+      </div>
+      <div class="muted" style="margin-top:4px;">
+        Best: <span id="best">0</span> <span class="pill" id="streakPill" style="display:none;">Streak x1</span>
       </div>
     </div>
     <div id="crosshair"></div>
@@ -220,18 +258,35 @@
   <div id="menu">
     <div id="card">
       <div id="title">BIRDHUNT</div>
-      <div id="subtitle">Pixel styled first person bird shooting in a forest. Fast, clean, and simple.</div>
+      <div id="subtitle">Pixel styled first person bird shooting in a moody forest. Fast, clean, and simple.</div>
 
       <div class="grid">
         <div class="panel">
           <h3>How It Works</h3>
           <ul>
             <li>Birds fly over the treeline. Shoot them for points.</li>
-            <li>Different birds give different points.</li>
+            <li>Head toward open areas for clearer shots.</li>
             <li>You have 60 seconds. Reload anytime.</li>
-            <li>This is a browser game, no downloads.</li>
+            <li>Trackpad friendly: Start then click once inside.</li>
           </ul>
+
+          <div class="settingRow">
+            <label for="sens">Mouse sensitivity</label>
+            <input id="sens" type="range" min="0.2" max="2.5" step="0.05" value="1.0" />
+            <span class="pill" id="sensVal">1.00</span>
+          </div>
+
+          <div class="settingRow">
+            <label for="audio">Sound</label>
+            <input id="audio" type="range" min="0" max="100" step="1" value="45" />
+            <span class="pill" id="audioVal">45</span>
+          </div>
+
+          <div class="small" id="tips" style="display:none;">
+            Tip: If pointer lock is blocked, click Start again, then click inside the game. Some browsers require that second click.
+          </div>
         </div>
+
         <div class="panel">
           <h3>Controls</h3>
           <ul>
@@ -240,8 +295,11 @@
             <li>Click shoot</li>
             <li><span class="kbd">R</span> reload</li>
             <li><span class="kbd">Shift</span> sprint</li>
-            <li><span class="kbd">Esc</span> unlock mouse</li>
+            <li><span class="kbd">Esc</span> pause</li>
           </ul>
+          <div class="small">
+            Your goal is clean accuracy. Hit streaks for small bonus points.
+          </div>
         </div>
       </div>
 
@@ -252,9 +310,7 @@
         <button id="restartBtn">Restart</button>
       </div>
 
-      <div class="small" id="tips" style="display:none;">
-        Tip: If the mouse does not lock, click inside the game area after pressing Start. If you see a black screen, refresh the page once.
-      </div>
+      <div class="small" id="endStats" style="display:none; margin-top:10px;"></div>
     </div>
   </div>
 
@@ -276,98 +332,175 @@
     const qualityBtn = document.getElementById("qualityBtn");
     const restartBtn = document.getElementById("restartBtn");
     const tips = document.getElementById("tips");
+    const endStats = document.getElementById("endStats");
 
-    function showMsg(text, ms = 800) {
+    const sensSlider = document.getElementById("sens");
+    const sensVal = document.getElementById("sensVal");
+    const audioSlider = document.getElementById("audio");
+    const audioVal = document.getElementById("audioVal");
+
+    const bestEl = document.getElementById("best");
+    const streakPill = document.getElementById("streakPill");
+
+    function showMsg(text, ms = 900) {
       msgEl.textContent = text;
       msgEl.classList.add("show");
       window.clearTimeout(showMsg._t);
       showMsg._t = window.setTimeout(() => msgEl.classList.remove("show"), ms);
     }
 
-    // Pixel resolution presets
+    /* Local best score */
+    const BEST_KEY = "birdhunt_best_v1";
+    function loadBest() {
+      const v = Number(localStorage.getItem(BEST_KEY) || "0");
+      return Number.isFinite(v) ? v : 0;
+    }
+    function saveBest(v) {
+      localStorage.setItem(BEST_KEY, String(v));
+    }
+    let bestScore = loadBest();
+    bestEl.textContent = String(bestScore);
+
+    /* Audio */
+    let audioCtx = null;
+    let audioGain = null;
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioGain = audioCtx.createGain();
+      audioGain.gain.value = (Number(audioSlider.value) / 100) * 0.12;
+      audioGain.connect(audioCtx.destination);
+    }
+    function setAudioVolume() {
+      if (!audioGain) return;
+      audioGain.gain.value = (Number(audioSlider.value) / 100) * 0.12;
+    }
+    function beep(freq = 440, dur = 0.06, type = "square") {
+      if (!audioCtx || !audioGain) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = 0.8;
+      o.connect(g);
+      g.connect(audioGain);
+      o.start();
+      o.stop(audioCtx.currentTime + dur);
+    }
+
+    /* Pixel resolution presets */
     const qualityPresets = [
       { name: "Low",    w: 320, h: 180 },
       { name: "Medium", w: 426, h: 240 },
       { name: "High",   w: 640, h: 360 },
+      { name: "Ultra",  w: 854, h: 480 },
     ];
     let qualityIndex = 1;
 
-    // Game settings
+    /* Game settings */
     const GAME_SECONDS = 60;
     const MAG_SIZE = 16;
 
-    // Scene
+    /* Scene */
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x07100a, 0.028);
 
-    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 350);
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 420);
     camera.position.set(0, 1.7, 8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
     renderer.setPixelRatio(1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.tabIndex = 0;
+    renderer.domElement.style.cursor = "crosshair";
     wrap.appendChild(renderer.domElement);
 
-    // Controls
+    /* Controls */
     const controls = new PointerLockControls(camera, renderer.domElement);
     scene.add(controls.getObject());
 
-    // Lighting
+    let mouseSensitivity = 1.0;
+    controls.pointerSpeed = mouseSensitivity;
+
+    /* Lighting */
     const hemi = new THREE.HemisphereLight(0xb6d7ff, 0x0b140a, 0.75);
     scene.add(hemi);
 
     const sun = new THREE.DirectionalLight(0xffffff, 0.9);
     sun.position.set(40, 60, 20);
-    sun.castShadow = false;
     scene.add(sun);
 
-    // Ground
-    const groundGeo = new THREE.PlaneGeometry(220, 220, 1, 1);
+    /* Ground */
+    const groundGeo = new THREE.PlaneGeometry(260, 260, 1, 1);
     const groundMat = new THREE.MeshLambertMaterial({ color: 0x103016 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
     scene.add(ground);
 
-    // Sky dome
-    const skyGeo = new THREE.SphereGeometry(140, 18, 14);
+    /* Subtle path ring to give direction */
+    const pathGeo = new THREE.RingGeometry(10, 44, 64);
+    const pathMat = new THREE.MeshBasicMaterial({ color: 0x0e2515, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+    const path = new THREE.Mesh(pathGeo, pathMat);
+    path.rotation.x = -Math.PI / 2;
+    path.position.y = 0.02;
+    scene.add(path);
+
+    /* Sky dome */
+    const skyGeo = new THREE.SphereGeometry(170, 22, 16);
     const skyMat = new THREE.MeshBasicMaterial({ color: 0x07141e, side: THREE.BackSide });
     const sky = new THREE.Mesh(skyGeo, skyMat);
     scene.add(sky);
 
-    // Pixel forest props (billboard trees)
-    function makeTreeTexture() {
+    /* Distant mountains */
+    function makeMountain() {
+      const g = new THREE.ConeGeometry(18, 22, 6, 1);
+      const m = new THREE.MeshLambertMaterial({ color: 0x0a1413 });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.position.y = 8;
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      return mesh;
+    }
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      const r = 120 + Math.random() * 18;
+      const mount = makeMountain();
+      mount.position.x = Math.cos(a) * r;
+      mount.position.z = Math.sin(a) * r;
+      mount.scale.setScalar(1.0 + Math.random() * 1.2);
+      scene.add(mount);
+    }
+
+    /* Pixel billboard trees */
+    function makeTreeTexture(seed = 0) {
       const c = document.createElement("canvas");
       c.width = 32;
       c.height = 64;
       const g = c.getContext("2d");
 
-      // Transparent
       g.clearRect(0, 0, c.width, c.height);
 
-      // Trunk
       g.fillStyle = "#3a2a1a";
       g.fillRect(14, 40, 4, 18);
 
-      // Leaves blocks
-      const greens = ["#1a5b2a", "#1f6a31", "#144d24", "#2a7a3b"];
-      function px(x,y,w,h,color){
-        g.fillStyle = color;
-        g.fillRect(x,y,w,h);
-      }
+      const greens = ["#1a5b2a", "#1f6a31", "#144d24", "#2a7a3b", "#0f3f1f"];
+      function px(x,y,w,h,color){ g.fillStyle = color; g.fillRect(x,y,w,h); }
+
       const blocks = [
         [10, 26, 12, 10],
         [8,  22, 16, 8],
         [12, 18, 8,  6],
         [6,  30, 20, 10],
         [10, 34, 12, 8],
+        [9,  20, 14, 6],
       ];
-      for (const b of blocks) {
-        px(b[0], b[1], b[2], b[3], greens[Math.floor(Math.random()*greens.length)]);
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        const col = greens[(seed + i + Math.floor(Math.random() * greens.length)) % greens.length];
+        px(b[0], b[1], b[2], b[3], col);
       }
 
-      // Tiny highlight
-      g.fillStyle = "rgba(255,255,255,0.12)";
+      g.fillStyle = "rgba(255,255,255,0.10)";
       g.fillRect(9, 24, 3, 3);
 
       const tex = new THREE.CanvasTexture(c);
@@ -378,17 +511,15 @@
       return tex;
     }
 
-    const treeTex = makeTreeTexture();
-    const treeMat = new THREE.MeshBasicMaterial({
-      map: treeTex,
-      transparent: true,
-      depthWrite: false
-    });
-
-    function addTree(x, z, scale = 1) {
+    const trees = [];
+    function addTree(x, z, scale = 1, seed = 0) {
       const geo = new THREE.PlaneGeometry(2.0, 4.0);
-      const m = treeMat.clone();
-      const mesh = new THREE.Mesh(geo, m);
+      const mat = new THREE.MeshBasicMaterial({
+        map: makeTreeTexture(seed),
+        transparent: true,
+        depthWrite: false
+      });
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(x, 2.0, z);
       mesh.scale.setScalar(scale);
       mesh.userData.isTree = true;
@@ -396,18 +527,16 @@
       trees.push(mesh);
     }
 
-    const trees = [];
-    // Place trees in a ring around player, leave some space in the middle
-    for (let i = 0; i < 140; i++) {
-      const r = 18 + Math.random() * 85;
+    for (let i = 0; i < 170; i++) {
+      const r = 18 + Math.random() * 95;
       const a = Math.random() * Math.PI * 2;
       const x = Math.cos(a) * r + (Math.random() - 0.5) * 6;
       const z = Math.sin(a) * r + (Math.random() - 0.5) * 6;
-      if (Math.abs(x) < 10 && Math.abs(z) < 10) continue;
-      addTree(x, z, 0.8 + Math.random() * 1.6);
+      if (Math.abs(x) < 12 && Math.abs(z) < 12) continue;
+      addTree(x, z, 0.8 + Math.random() * 1.7, i);
     }
 
-    // Birds (sprites made from canvas textures)
+    /* Birds */
     function makeBirdTexture(type = 0) {
       const c = document.createElement("canvas");
       c.width = 32;
@@ -416,27 +545,24 @@
       g.clearRect(0,0,c.width,c.height);
 
       const palettes = [
-        { body:"#dfe7ff", wing:"#a9b6d8", eye:"#111111" }, // gull
-        { body:"#1a1a1a", wing:"#2c2c2c", eye:"#e7e7e7" }, // crow
-        { body:"#c97b2e", wing:"#9b5420", eye:"#111111" }, // hawk
-        { body:"#6fd4ff", wing:"#3aa9d6", eye:"#111111" }, // rare
+        { body:"#dfe7ff", wing:"#a9b6d8", eye:"#111111" },
+        { body:"#1a1a1a", wing:"#2c2c2c", eye:"#e7e7e7" },
+        { body:"#c97b2e", wing:"#9b5420", eye:"#111111" },
+        { body:"#6fd4ff", wing:"#3aa9d6", eye:"#111111" },
       ];
       const p = palettes[type] || palettes[0];
 
       function px(x,y,w,h,color){ g.fillStyle = color; g.fillRect(x,y,w,h); }
 
-      // Body and wings
       px(14, 7, 6, 3, p.body);
       px(11, 6, 3, 2, p.wing);
       px(20, 6, 3, 2, p.wing);
       px(9,  8, 6, 2, p.wing);
       px(17, 8, 6, 2, p.wing);
 
-      // Head
       px(20, 7, 2, 2, p.body);
       px(22, 8, 1, 1, p.eye);
 
-      // Pixel edge shadow
       g.fillStyle = "rgba(0,0,0,0.25)";
       g.fillRect(14, 10, 6, 1);
 
@@ -467,23 +593,22 @@
     const birdGeo = new THREE.PlaneGeometry(1.8, 0.9);
 
     function spawnBird() {
-      const isRare = Math.random() < 0.05;
+      const isRare = Math.random() < 0.06;
       const t = isRare ? rareType : birdTypes[Math.floor(Math.random() * birdTypes.length)];
 
       const mesh = new THREE.Mesh(birdGeo, t.mat.clone());
       mesh.userData.type = t;
 
-      // Spawn in front-ish of player in a wide arc
       const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
       dir.y = 0;
       dir.normalize();
 
       const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
-      const forwardDist = 30 + Math.random() * 70;
-      const sideDist = (Math.random() - 0.5) * 80;
+      const forwardDist = 34 + Math.random() * 80;
+      const sideDist = (Math.random() - 0.5) * 90;
 
       const start = controls.getObject().position.clone();
-      start.y = 9 + Math.random() * 9;
+      start.y = 9 + Math.random() * 10;
 
       const pos = start
         .add(dir.multiplyScalar(forwardDist))
@@ -492,10 +617,9 @@
       mesh.position.copy(pos);
       mesh.scale.setScalar(t.size);
 
-      // Velocity roughly sideways with a little forward drift
       const flyRight = (Math.random() < 0.5 ? -1 : 1);
-      const v = right.clone().multiplyScalar(flyRight * (t.speed + Math.random() * 2.5));
-      v.add(new THREE.Vector3((Math.random()-0.5) * 2.0, (Math.random()-0.5) * 0.6, (Math.random()-0.5) * 2.0));
+      const v = right.clone().multiplyScalar(flyRight * (t.speed + Math.random() * 2.7));
+      v.add(new THREE.Vector3((Math.random()-0.5) * 2.2, (Math.random()-0.5) * 0.7, (Math.random()-0.5) * 2.2));
 
       mesh.userData.vel = v;
       mesh.userData.life = 8 + Math.random() * 8;
@@ -505,137 +629,7 @@
       birds.push(mesh);
     }
 
-    // Weapon and scoring
-    let score = 0;
-    let ammo = MAG_SIZE;
-    let timeLeft = GAME_SECONDS;
-    let running = false;
-
-    ammoMaxEl.textContent = MAG_SIZE;
-
-    function updateHUD() {
-      scoreEl.textContent = String(score);
-      timeEl.textContent = String(Math.max(0, Math.floor(timeLeft)));
-      ammoEl.textContent = String(ammo);
-      barFill.style.width = `${(ammo / MAG_SIZE) * 100}%`;
-    }
-
-    function resetGame() {
-      score = 0;
-      ammo = MAG_SIZE;
-      timeLeft = GAME_SECONDS;
-
-      for (const b of birds) scene.remove(b);
-      birds.length = 0;
-
-      controls.getObject().position.set(0, 1.7, 8);
-      controls.getObject().rotation.set(0, 0, 0);
-
-      running = false;
-      updateHUD();
-      showMsg("Ready", 600);
-    }
-
-    // Raycast shooting
-    const raycaster = new THREE.Raycaster();
-    raycaster.far = 220;
-
-    function shoot() {
-      if (!running) return;
-      if (!controls.isLocked) return;
-
-      if (ammo <= 0) {
-        showMsg("Reload", 650);
-        return;
-      }
-
-      ammo -= 1;
-      updateHUD();
-
-      // Small recoil
-      controls.getObject().rotation.x -= 0.01;
-
-      // Ray from camera
-      raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-      const hits = raycaster.intersectObjects(birds, false);
-      if (hits.length) {
-        const hit = hits[0].object;
-        const t = hit.userData.type;
-
-        score += t.points;
-        updateHUD();
-
-        // Pop effect
-        hit.scale.multiplyScalar(1.15);
-        hit.material.opacity = 0.35;
-
-        scene.remove(hit);
-        birds.splice(birds.indexOf(hit), 1);
-
-        showMsg(`+${t.points} ${t.name}`, 650);
-      } else {
-        showMsg("Miss", 350);
-      }
-    }
-
-    function reload() {
-      if (!running) return;
-      ammo = MAG_SIZE;
-      updateHUD();
-      showMsg("Reloaded", 650);
-    }
-
-    // Movement
-    const keys = { w:false, a:false, s:false, d:false, shift:false };
-    window.addEventListener("keydown", (e) => {
-      const k = e.key.toLowerCase();
-      if (k === "w") keys.w = true;
-      if (k === "a") keys.a = true;
-      if (k === "s") keys.s = true;
-      if (k === "d") keys.d = true;
-      if (k === "shift") keys.shift = true;
-      if (k === "r") reload();
-    });
-    window.addEventListener("keyup", (e) => {
-      const k = e.key.toLowerCase();
-      if (k === "w") keys.w = false;
-      if (k === "a") keys.a = false;
-      if (k === "s") keys.s = false;
-      if (k === "d") keys.d = false;
-      if (k === "shift") keys.shift = false;
-    });
-
-    window.addEventListener("mousedown", (e) => {
-      if (e.button === 0) shoot();
-    });
-
-    // Pixel render sizing
-    function applyQuality() {
-      const q = qualityPresets[qualityIndex];
-      renderer.setSize(q.w, q.h, false);
-      camera.aspect = q.w / q.h;
-      camera.updateProjectionMatrix();
-      qualityBtn.textContent = `Pixel Quality: ${q.name}`;
-    }
-
-    function onResize() {
-      // Keep internal pixel resolution fixed, CSS stretches it
-      renderer.domElement.style.width = "100vw";
-      renderer.domElement.style.height = "100vh";
-    }
-    window.addEventListener("resize", onResize);
-
-    // Billboard trees always face camera
-    function faceBillboards() {
-      for (const t of trees) {
-        t.lookAt(camera.position.x, t.position.y, camera.position.z);
-      }
-      for (const b of birds) {
-        b.lookAt(camera.position.x, b.position.y, camera.position.z);
-      }
-    }
-
-    // Simple ambient drifting particles for forest vibes
+    /* Ambient motes */
     const motes = [];
     const moteGeo = new THREE.PlaneGeometry(0.18, 0.18);
     const moteCanvas = document.createElement("canvas");
@@ -648,12 +642,12 @@
     moteTex.magFilter = THREE.NearestFilter;
     moteTex.minFilter = THREE.NearestFilter;
     moteTex.generateMipmaps = false;
-    const moteMat = new THREE.MeshBasicMaterial({ map: moteTex, transparent: true, opacity: 0.6, depthWrite: false });
+    const moteMat = new THREE.MeshBasicMaterial({ map: moteTex, transparent: true, opacity: 0.55, depthWrite: false });
 
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 140; i++) {
       const m = new THREE.Mesh(moteGeo, moteMat.clone());
-      m.position.set((Math.random()-0.5)*80, 1 + Math.random()*18, (Math.random()-0.5)*80);
-      m.userData.v = new THREE.Vector3((Math.random()-0.5)*0.25, (Math.random()-0.5)*0.06, (Math.random()-0.5)*0.25);
+      m.position.set((Math.random()-0.5)*90, 1 + Math.random()*20, (Math.random()-0.5)*90);
+      m.userData.v = new THREE.Vector3((Math.random()-0.5)*0.30, (Math.random()-0.5)*0.08, (Math.random()-0.5)*0.30);
       scene.add(m);
       motes.push(m);
     }
@@ -664,14 +658,253 @@
         m.position.addScaledVector(m.userData.v, dt);
         m.lookAt(camera.position.x, camera.position.y, camera.position.z);
 
-        // Keep them around player
-        if (m.position.distanceTo(p) > 70) {
-          m.position.set(p.x + (Math.random()-0.5)*70, 1 + Math.random()*18, p.z + (Math.random()-0.5)*70);
+        if (m.position.distanceTo(p) > 78) {
+          m.position.set(p.x + (Math.random()-0.5)*78, 1 + Math.random()*20, p.z + (Math.random()-0.5)*78);
         }
       }
     }
 
-    // Game clock and spawning
+    /* HUD and game state */
+    let score = 0;
+    let ammo = MAG_SIZE;
+    let timeLeft = GAME_SECONDS;
+    let running = false;
+
+    let shots = 0;
+    let hits = 0;
+    let streak = 0;
+    let maxStreak = 0;
+
+    ammoMaxEl.textContent = MAG_SIZE;
+
+    function updateHUD() {
+      scoreEl.textContent = String(score);
+      timeEl.textContent = String(Math.max(0, Math.floor(timeLeft)));
+      ammoEl.textContent = String(ammo);
+      barFill.style.width = `${(ammo / MAG_SIZE) * 100}%`;
+
+      if (streak >= 3) {
+        streakPill.style.display = "inline-block";
+        streakPill.textContent = `Streak x${streak}`;
+      } else {
+        streakPill.style.display = "none";
+      }
+    }
+
+    function setMenuVisible(vis) {
+      menu.style.display = vis ? "grid" : "none";
+    }
+
+    function resetStats() {
+      shots = 0;
+      hits = 0;
+      streak = 0;
+      maxStreak = 0;
+    }
+
+    function clearBirds() {
+      for (const b of birds) scene.remove(b);
+      birds.length = 0;
+    }
+
+    function resetGame() {
+      score = 0;
+      ammo = MAG_SIZE;
+      timeLeft = GAME_SECONDS;
+      running = false;
+      pendingStart = false;
+      endStats.style.display = "none";
+      endStats.textContent = "";
+      clearBirds();
+      resetStats();
+
+      controls.getObject().position.set(0, 1.7, 8);
+      controls.getObject().rotation.set(0, 0, 0);
+
+      updateHUD();
+      showMsg("Ready", 650);
+    }
+
+    function endGame() {
+      running = false;
+      if (score > bestScore) {
+        bestScore = score;
+        saveBest(bestScore);
+        bestEl.textContent = String(bestScore);
+        showMsg("New Best", 900);
+        beep(880, 0.07, "square");
+        beep(1320, 0.07, "square");
+      } else {
+        showMsg("Time Up", 1100);
+        beep(220, 0.08, "sawtooth");
+      }
+
+      const acc = shots > 0 ? Math.round((hits / shots) * 100) : 0;
+      endStats.style.display = "block";
+      endStats.innerHTML =
+        `<b>Run Summary</b><br>` +
+        `Score: <b>${score}</b><br>` +
+        `Shots: ${shots} | Hits: ${hits} | Accuracy: ${acc}%<br>` +
+        `Max streak: ${maxStreak}<br>` +
+        `Press Start to go again.`;
+
+      setMenuVisible(true);
+      if (controls.isLocked) controls.unlock();
+    }
+
+    /* Raycast shooting */
+    const raycaster = new THREE.Raycaster();
+    raycaster.far = 260;
+
+    function shoot() {
+      if (!running) return;
+      if (!controls.isLocked) return;
+
+      ensureAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+
+      if (ammo <= 0) {
+        showMsg("Reload", 650);
+        beep(180, 0.05, "square");
+        return;
+      }
+
+      ammo -= 1;
+      shots += 1;
+      updateHUD();
+
+      controls.getObject().rotation.x -= 0.01;
+
+      raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+      const hitsList = raycaster.intersectObjects(birds, false);
+
+      beep(520 + Math.random() * 60, 0.03, "square");
+
+      if (hitsList.length) {
+        const hitObj = hitsList[0].object;
+        const t = hitObj.userData.type;
+
+        hits += 1;
+        streak += 1;
+        maxStreak = Math.max(maxStreak, streak);
+
+        let add = t.points;
+        if (streak >= 4) add += 1;
+        if (streak >= 7) add += 1;
+
+        score += add;
+        updateHUD();
+
+        hitObj.scale.multiplyScalar(1.18);
+        hitObj.material.opacity = 0.28;
+
+        scene.remove(hitObj);
+        birds.splice(birds.indexOf(hitObj), 1);
+
+        showMsg(`+${add} ${t.name}`, 650);
+        beep(740 + Math.random() * 90, 0.04, "triangle");
+      } else {
+        streak = 0;
+        updateHUD();
+        showMsg("Miss", 360);
+      }
+    }
+
+    function reload() {
+      if (!running) return;
+      ensureAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      ammo = MAG_SIZE;
+      updateHUD();
+      showMsg("Reloaded", 650);
+      beep(300, 0.04, "square");
+      beep(420, 0.04, "square");
+    }
+
+    /* Movement */
+    const keys = { w:false, a:false, s:false, d:false, shift:false };
+
+    function setKey(e, down) {
+      const k = e.key.toLowerCase();
+      if (k === "w") keys.w = down;
+      if (k === "a") keys.a = down;
+      if (k === "s") keys.s = down;
+      if (k === "d") keys.d = down;
+      if (k === "shift") keys.shift = down;
+
+      if (down && k === "r") reload();
+
+      if (down && k === "escape") {
+        if (controls.isLocked) {
+          controls.unlock();
+        } else {
+          if (menu.style.display === "none") {
+            setMenuVisible(true);
+          }
+        }
+      }
+    }
+
+    window.addEventListener("keydown", (e) => setKey(e, true));
+    window.addEventListener("keyup", (e) => setKey(e, false));
+
+    window.addEventListener("mousedown", (e) => {
+      if (e.button === 0) shoot();
+    });
+
+    /* Trackpad support */
+    renderer.domElement.addEventListener("pointerdown", (e) => {
+      if (e.button === 0) {
+        if (controls.isLocked && running) {
+          shoot();
+        }
+      }
+    });
+
+    /* Pixel render sizing */
+    function applyQuality() {
+      const q = qualityPresets[qualityIndex];
+      renderer.setSize(q.w, q.h, false);
+      camera.aspect = q.w / q.h;
+      camera.updateProjectionMatrix();
+      qualityBtn.textContent = `Pixel Quality: ${q.name}`;
+    }
+
+    function onResize() {
+      renderer.domElement.style.width = "100vw";
+      renderer.domElement.style.height = "100vh";
+    }
+    window.addEventListener("resize", onResize);
+
+    /* Billboard facing */
+    function faceBillboards() {
+      for (const t of trees) {
+        t.lookAt(camera.position.x, t.position.y, camera.position.z);
+      }
+      for (const b of birds) {
+        b.lookAt(camera.position.x, b.position.y, camera.position.z);
+      }
+      for (const m of motes) {
+        m.lookAt(camera.position.x, camera.position.y, camera.position.z);
+      }
+    }
+
+    /* Day night vibe shift */
+    let skyT = 0;
+    function updateSky(dt) {
+      skyT += dt * 0.02;
+      const pulse = 0.5 + 0.5 * Math.sin(skyT);
+      const fogBase = 0.024 + pulse * 0.012;
+      scene.fog.density = fogBase;
+
+      hemi.intensity = 0.62 + pulse * 0.22;
+      sun.intensity = 0.75 + pulse * 0.25;
+
+      const skyCol = new THREE.Color().setHSL(0.60, 0.45, 0.10 + pulse * 0.06);
+      sky.material.color.copy(skyCol);
+    }
+
+    /* Game clock */
     let last = performance.now();
     let spawnTimer = 0;
 
@@ -679,49 +912,41 @@
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
 
-      // Update only if running
+      updateSky(dt);
+
       if (running) {
         timeLeft -= dt;
         if (timeLeft <= 0) {
           timeLeft = 0;
-          running = false;
           updateHUD();
-          showMsg("Time Up", 1200);
-          menu.style.display = "grid";
-          if (controls.isLocked) controls.unlock();
+          endGame();
         } else {
           updateHUD();
         }
 
-        // Spawn birds
         spawnTimer -= dt;
-        const spawnRate = 0.55; // lower is more birds
+        const spawnRate = 0.52;
         if (spawnTimer <= 0) {
-          spawnTimer = spawnRate + Math.random() * 0.55;
-          // spawn 1 or sometimes 2
+          spawnTimer = spawnRate + Math.random() * 0.60;
           spawnBird();
-          if (Math.random() < 0.12) spawnBird();
+          if (Math.random() < 0.14) spawnBird();
         }
 
-        // Move birds
         for (let i = birds.length - 1; i >= 0; i--) {
           const b = birds[i];
           b.position.addScaledVector(b.userData.vel, dt);
           b.userData.life -= dt;
 
-          // gentle wave
           b.position.y += Math.sin((now * 0.004) + i) * 0.002;
 
-          // despawn
           if (b.userData.life <= 0) {
             scene.remove(b);
             birds.splice(i, 1);
           }
         }
 
-        // Movement
         const obj = controls.getObject();
-        const speed = keys.shift ? 7.6 : 4.6;
+        const speed = keys.shift ? 8.0 : 4.8;
 
         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
         forward.y = 0;
@@ -742,21 +967,18 @@
           obj.position.add(move);
         }
 
-        // Keep player above ground and inside area
         obj.position.y = 1.7;
-        obj.position.x = THREE.MathUtils.clamp(obj.position.x, -90, 90);
-        obj.position.z = THREE.MathUtils.clamp(obj.position.z, -90, 90);
+        obj.position.x = THREE.MathUtils.clamp(obj.position.x, -100, 100);
+        obj.position.z = THREE.MathUtils.clamp(obj.position.z, -100, 100);
       }
 
-      // Always update billboards and motes
-      faceBillboards();
       updateMotes(dt);
-
+      faceBillboards();
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
 
-    // Menu buttons
+    /* Menu buttons */
     howBtn.addEventListener("click", () => {
       tips.style.display = (tips.style.display === "none") ? "block" : "none";
     });
@@ -767,70 +989,120 @@
       showMsg("Quality set", 650);
     });
 
+    restartBtn.addEventListener("click", () => {
+      ensureAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      resetGame();
+      setMenuVisible(true);
+      showMsg("Restarted", 700);
+      beep(360, 0.05, "square");
+      beep(520, 0.05, "square");
+      if (controls.isLocked) controls.unlock();
+    });
+
+    /* Sensitivity and audio UI */
+    function syncUI() {
+      mouseSensitivity = Number(sensSlider.value);
+      sensVal.textContent = mouseSensitivity.toFixed(2);
+      controls.pointerSpeed = mouseSensitivity;
+
+      audioVal.textContent = String(audioSlider.value);
+      setAudioVolume();
+    }
+    sensSlider.addEventListener("input", syncUI);
+    audioSlider.addEventListener("input", () => {
+      ensureAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      syncUI();
+      beep(420, 0.03, "triangle");
+    });
+
+    /* Start flow that works on trackpad and avoids duplicate handlers */
     let pendingStart = false;
 
-function beginRun() {
-  if (!running) {
-    running = true;
-    showMsg("Go", 650);
-  }
-}
-
-startBtn.addEventListener("click", () => {
-  menu.style.display = "none";
-  pendingStart = true;
-  showMsg("Click anywhere to begin", 900);
-});
-
-// Click canvas to lock and start
-renderer.domElement.addEventListener("click", () => {
-  if (menu.style.display !== "none") return;
-
-  if (!controls.isLocked) {
-    controls.lock();
-    return;
-  }
-
-  if (pendingStart) {
-    pendingStart = false;
-    beginRun();
-  }
-});
-
-// Start as soon as pointer lock succeeds
-controls.addEventListener("lock", () => {
-  if (pendingStart) {
-    pendingStart = false;
-    beginRun();
-  }
-});
-
-    startBtn.addEventListener("click", () => {
-      menu.style.display = "none";
-      controls.lock();
+    function beginRun() {
       if (!running) {
         running = true;
         showMsg("Go", 650);
+        beep(660, 0.05, "triangle");
+      }
+    }
+
+    function requestLock() {
+      try {
+        controls.lock();
+      } catch (err) {
+        showMsg("Pointer lock blocked. Click Start again.", 1200);
+      }
+    }
+
+    startBtn.addEventListener("click", () => {
+      ensureAudio();
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+
+      endStats.style.display = "none";
+      endStats.textContent = "";
+
+      setMenuVisible(false);
+      pendingStart = true;
+
+      showMsg("Click inside to lock mouse", 1000);
+      requestLock();
+    });
+
+    /* Click inside canvas: if not locked, lock. If locked and pending, start. */
+    renderer.domElement.addEventListener("click", () => {
+      if (menu.style.display !== "none") return;
+
+      if (!controls.isLocked) {
+        requestLock();
+        return;
+      }
+      if (pendingStart) {
+        pendingStart = false;
+        beginRun();
       }
     });
 
-    // Pointer lock events
     controls.addEventListener("lock", () => {
       showMsg("Locked", 450);
+      if (pendingStart) {
+        pendingStart = false;
+        beginRun();
+      }
     });
+
     controls.addEventListener("unlock", () => {
       if (running) {
         showMsg("Paused", 650);
-        menu.style.display = "grid";
+        setMenuVisible(true);
       }
     });
 
-    // Start up
+    /* Prevent stuck pending start if menu is visible */
+    function safeShowMenu() {
+      pendingStart = false;
+      setMenuVisible(true);
+    }
+
+    /* Boot */
+    syncUI();
     applyQuality();
     onResize();
     resetGame();
     updateHUD();
     requestAnimationFrame(tick);
+
+    /* Extra: avoid scrolling and accidental gestures */
+    window.addEventListener("wheel", (e) => {
+      if (controls.isLocked) e.preventDefault();
+    }, { passive: false });
+
+    /* If pointer lock is not supported */
+    if (!("pointerLockElement" in document)) {
+      showMsg("Pointer lock not supported in this browser.", 1400);
+      safeShowMenu();
+    }
   </script>
 </body>
 </html>
